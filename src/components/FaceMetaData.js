@@ -17,12 +17,9 @@ const FaceMetaData = props => {
   else{
     img.src = imageSrc
   }
-//console.log('imageSrc: ',imageSrc);
-
 
   const newWidth = faceRectangle.width
   const newHeight = faceRectangle.height
-
   const startX = faceRectangle.left
   const startY = faceRectangle.top
 
@@ -70,7 +67,7 @@ const FaceMetaData = props => {
 
           <img
             id='thumbnail'
-            alt=''
+            alt='face'
             src={loadCanvas()}
             className='thumbnail'
           />

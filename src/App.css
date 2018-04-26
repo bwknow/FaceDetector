@@ -309,6 +309,19 @@ z-index:10000;
 
 }
 
+.css-jxiqlq {
+    width: 60px;
+  height: 176px;
+  margin: auto;
+  margin-top: 100px;
+}
+
+.css-jxiqlq {
+  width: 60px;
+  height: 76px !important;
+  position: relative;
+}
+
 
 button {
 	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #bab1ba));
