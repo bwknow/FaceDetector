@@ -64,7 +64,7 @@ div {
 }
 
 .meta-data {
-  overflow: scroll;
+  overflow: hidden;
   max-height: 630px;
  
 }
