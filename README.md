@@ -1,14 +1,14 @@
 # Face emotion detector
 
-Cloud Journey #13 - Face emotion detector web application using Azure Cogintive Service APIs.
+Cloud Journey #13 - Face emotion detector web application using Azure Cogintive Service APIs, React.js and Node.
 
-## Get Started
+## config
 
 ```javascript
 // server/env/environment.js
-const cosmosPort = 1234; // replace with your port
-const dbName = 'your-cosmos-db-name-goes-here';
-const key = 'your-key-goes-here';
+const cosmosPort = 1234; // your port
+const dbName = 'your-cosmos-db-name';
+const key = 'your-key';
 
 module.exports = {
   cosmosPort,
@@ -22,7 +22,7 @@ module.exports = {
 npm install
 ```
 
-In development, the app runs via two separate processes...
+In development, the app runs via two separate processes.
 
 ### Start the Express Server
 
@@ -33,15 +33,10 @@ node server/server.js
 
 ### Start React App
 
-In a different terminal tab...
+In a different terminal tab
 
 ```bash
 npm start
 ```
 
-## Building For Production
-
-```bash
-npm run build
-```
 
