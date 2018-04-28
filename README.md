@@ -2,7 +2,7 @@
 
 Cloud Journey #13 - Face emotion detector web application using Azure Cogintive Service APIs, React.js and Node.
 
-## Application settings 
+## Application Settings 
 
 ```javascript
 // server/env/environment.js
