@@ -1,6 +1,8 @@
 # FRED - Face Recognition Emotion Detection
 
-Cloud Journey #13 - Face detection emotion analytics web application using Azure Cogintive Service APIs, React.js and Node.
+Cloud Journey #13 POC - Face detection emotion analytics web application 
+for market research and analysis. Leveraging Azure web-apps and APIs to capture emotional reactions
+using Azure Cogintive Service APIs, React.js and Node.
 
 ## Application Settings 
 
