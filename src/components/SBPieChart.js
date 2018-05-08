@@ -1,6 +1,6 @@
 import React from 'react'
 import { PieChart } from 'react-easy-chart'
-import { getPieData } from '../Util'
+import { getPieData } from '../util'
 const SBPieChart = props => {
   const { data, size } = props
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { getEmotionName, getEmotionChart, hasMoustache, isBald } from '../Util'
+import { getEmotionName, getEmotionChart, hasMoustache, isBald } from '../util'
 import SBPieChart from './SBPieChart'
 
 const FaceMetaData = props => {

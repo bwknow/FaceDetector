@@ -1,21 +1,19 @@
 import React, { Component } from 'react'
 import Dropzone from 'react-dropzone'
-import $ from 'jquery'
 import FaceMetaData from './FaceMetaData'
-import { makeblob } from '../Util'
+import * as utils from './../util'
+import AIService from './../api'
+import Content from './Content'
 import { RingLoader } from 'react-spinners'
 import { Container, Row, Col } from 'react-grid-system'
 import Chart from './Chart'
 import SBPieChart from './SBPieChart'
 import SBScatterplotChart from './SBScatterplotChart'
-import { getEmotionChartSummary, getPieData, getScatterPlotData } from '../Util'
-import Footer from './footer'
-import { resource } from './resource'
+import Footer from './Footer'
+import { resource } from './Resource'
 import Webcam from 'react-webcam'
 import { Legend } from 'react-easy-chart'
 import FaBeer from 'react-icons/lib/fa/camera'
-
-var _ = require('lodash')
 
 class Face extends Component {
   constructor () {
@@ -24,50 +22,21 @@ class Face extends Component {
       files: [],
       metadata: [],
       preview: '',
-      happiness: 0,
       loading: false,
       showintro: true,
       reject: false,
-      caption: '',
       showCamera: false,
       imageSrc: '',
-      isHidden: true
+      isHidden: true,
+      caption:'',
+      captionJson:'',
+      recognizeText:'',
+      landmarks:'',
+      landmarksJson:'',
+      ocr:'',
+      ocrJson:'',
+
     }
-  }
-
- 
-
-     getCroppedImg=(image, pixelCrop, fileName) =>{
-
-    const canvas = document.createElement('canvas');
-    canvas.width = pixelCrop.width;
-    canvas.height = pixelCrop.height;
-    const ctx = canvas.getContext('2d');
-  
-    ctx.drawImage(
-      image,
-      pixelCrop.x,
-      pixelCrop.y,
-      pixelCrop.width,
-      pixelCrop.height,
-      0,
-      0,
-      pixelCrop.width,
-      pixelCrop.height
-    );
-  
-    return new Promise((resolve, reject) => {
-      canvas.toBlob(file => {
-        file.name = fileName;
-        resolve(file);
-      }, 'image/jpeg');
-    });
-  }
-
-  getTotal = (data, name) => {
-    _.find(data, function (obj) {
-      return obj.anger === name
-    })
   }
 
   goHome = () => {
@@ -79,15 +48,28 @@ class Face extends Component {
       imageSrc: '',
       showCamera: false,
       reject: false,
-      isHidden: true
+      isHidden: true,
+      caption:''
     })
+  }
+
+  toggleImage () {
+    this.setState({
+      isHidden: !this.state.isHidden
+    })
+  }
+
+  setRef = webcam => {
+    this.webcam = webcam
   }
 
   resetWebcam = () => {
     this.setState({
       showCamera: true,
       imageSrc: '',
-      files: []
+      files: [],
+      caption:'',
+      captionJson:''
     })
   }
 
@@ -103,33 +85,65 @@ class Face extends Component {
     })
   }
 
-  onDrop (files) {
+  successFaceCallback = (result)=> {
+    this.setState({ metadata: result})
+        if (this.state.metadata.length === 0) {
+          this.setState({ reject: true })
+        }
+  }
+  
+  successLandmarkCallback = (result)=> {
+    if(result.result.landmarks.length > 0){
+      console.log(result.result.landmarks[0].name)
+      this.setState({landmarks: result.result.landmarks[0].name,landmarksJson:result})
+    } 
+    this.setState({loading: false})
+  }
+
+  successCaptionCallback = (result)=> {
+    if(result.description.captions.length){
+      this.setState({caption: result.description.captions[0].text,captionJson:result})
+    }
+    this.setState({loading: false})
+  }
+  
+  successOCRCallback = (result)=> {
+    let ocr = utils.getOcrText(result);
+    this.setState({ocr})
+  }
+
+  failureCallback(error) {
+    console.log("failed: " + error);
+  }
+
+  reset () { 
     this.setState({
-      files,
       dropzoneActive: false,
       loading: true,
       metadata: [],
       showintro: false,
       reject: false,
       showCamera: false,
-      imageSrc: ''
+      imageSrc: '',
+      landmarks:'',
+      landmarksJson:'',
+      caption:'',
+      captionJson:'',
     })
+  }
 
-    const promise = new Promise((resolve, reject) => {
-      const reader = new FileReader()
-
-      reader.readAsDataURL(files[0])
-      reader.onload = () => {
-        if (reader.result) {
-          resolve(reader.result)
-        } else {
-          reject(Error('Failed converting to base64'))
-        }
-      }
+  onDrop (files) {
+    this.setState({
+      files,
     })
-    promise.then(
+    this.reset();
+
+    utils.onDropRead(files).then(
       result => {
-        this.getFaceDetection(result)
+          AIService.getCaption(result).then(this.successCaptionCallback, this.failureCallback);
+          AIService.getFace(result).then(this.successFaceCallback, this.failureCallback);
+          AIService.getLandmark(result).then(this.successLandmarkCallback, this.failureCallback);
+          AIService.getOCR(result).then(this.successOCRCallback, this.failureCallback);
       },
       err => {
         console.log(err)
@@ -137,87 +151,24 @@ class Face extends Component {
     )
   }
 
-  getFaceDetection = (preview) => {
-    this.setState({ metadata: [], imageSrc: '' })
-    const uriBase = resource.URI_BASE + 'face/v1.0/detect'
-    const params = {
-      returnFaceId: 'true',
-      returnFaceLandmarks: 'false',
-      returnFaceAttributes: resource.FACE_ATTRIBUTES
-    }
-    let contentType = 'application/octet-stream'
-
-    $.ajax({
-      url: uriBase + '?' + $.param(params),
-      processData: false,
-      beforeSend: function (xhrObj) {
-        xhrObj.setRequestHeader('Content-Type', contentType)
-        xhrObj.setRequestHeader('Ocp-Apim-Subscription-Key', resource.FACE_KEY)
-      },
-      type: 'POST',
-      data: makeblob(preview)
-    })
-      .done(data => {
-        this.setState({ metadata: data, loading: false })
-
-        if (this.state.metadata.length === 0) {
-          this.setState({ reject: true })
-        }
-         console.clear()
-         console.log('JSON data: ', JSON.stringify(this.state.metadata, null, 2))
-      })
-      .fail(function (jqXHR, textStatus, errorThrown) {})
-  }
-
-  getBackgroundStyle (value) {
-    return { backgroundImage: 'url(' + value.url + ')' }
-  }
-
-  getMales = metadata => {
-    let males = []
-
-    for (let i = 0; i < metadata.length; i++) {
-      if (metadata[i].faceAttributes.gender === 'male') {
-        males.push({ val: metadata[i].faceAttributes.gender })
-      }
-    }
-    return males
-  }
-
-  toggleHidden () {
-    this.setState({
-      isHidden: !this.state.isHidden
-    })
-  }
-
-  applyMimeTypes (event) {
-    this.setState({
-      accept: event.target.value
-    })
-  }
-
-  setRef = webcam => {
-    this.webcam = webcam
-  }
-
-  capture = () => {
+  cameraCapture = () => {
     const imageSrc = this.webcam.getScreenshot()
-    this.getFaceDetection(imageSrc)
+    AIService.getFace(imageSrc).then(this.successFaceCallback, this.failureCallback);
+ 
     this.setState({
-      loading: true,
       metadata: [],
+      files: [],
+      imageSrc: imageSrc,
       showintro: false,
       reject: false,
-      imageSrc: imageSrc,
       showCamera: false,
-      files: []
+      loading: false,
     })
   }
 
   render () {
-    
     const {
-      accept,   
+      accept,
       dropzoneActive,
       metadata,
       showintro,
@@ -225,7 +176,10 @@ class Face extends Component {
       loading,
       files,
       imageSrc,
-      showCamera
+      showCamera,
+      caption,
+      landmarks,
+      ocr
     } = this.state
 
     const overlayStyle = {
@@ -235,13 +189,9 @@ class Face extends Component {
       bottom: 0,
       left: 0,
       padding: '2.5em 0',
-      background: 'rgba(0,0,0,0.2)',
-      textAlign: 'center',
-      color: '#fff'
+      background: 'rgba(0,0,0,0.2)'
     }
 
-    let males = this.getMales(metadata).length
-    let females = metadata.length - males
     const scatterStyle = {
       '.legend': {
         backgroundColor: '#f9f9f9',
@@ -266,44 +216,65 @@ class Face extends Component {
       cursor: 'pointer'
     }
 
-    const Child = () => (
+    let males = utils.getMales(metadata).length
+    let females = metadata.length - males
+
+    const SwapIamge = () => (
       <img
-      alt='Vision'
-      className='apimap'
-      src={require('../images/fred-demo-slide.jpg')}
+        alt='Vision'
+        className='swapimg'
+        src={require('../images/csa.png')}
       />
-      )
+    )
+
+    const ShowConsoleLog = () => (
+      <div>
+        <pre className="landmarks">
+            {JSON.stringify(this.state.landmarksJson, null, 3)}
+      </pre>
+      <pre className="captions">
+            {JSON.stringify(this.state.captionJson, null, 3)}
+      </pre>
+      <pre className="faces">
+            {JSON.stringify(this.state.metadata, null, 3)}
+      </pre>
+  </div>
+    )
 
     return (
       <div>
+        <div className='topsec'>
+          <Container className='main-container' fluid>
+            <Row>
+              <Col md={1.5} className='container'>          
+                <img
+                  alt='siren'
+                  onClick={this.goHome}
+                  className='siren clearfix'
+                  src={require('../images/siren.png')}
+                />
+              </Col>
 
-        <Container className='main-container' fluid>
-          <Row>
-            <Col md={1.5}  className='container'>
-              <img
-                alt='siren'
-                onClick={this.goHome}
-                className='siren clearfix'
-                src={require('../images/siren.png')}
-              />
-            </Col>
+              <Col md={9.5} className='container'>
+                <h1 className='title'>
+                  {resource.SITE_NAME}
+                </h1>
+                <div className='subtitle sectitle'>
+                 <span >
+                    Give your apps a human side
+                </span>
+                </div>
+              </Col>
 
-            <Col md={9.5}  className='container'>
-              <h1 className='title'>
+            </Row>
+            <Row>
+              <Col md={12} className='container'>
+                <div className='header-bar' />
+              </Col>
+            </Row>
+          </Container>
 
-                Cloud Learning Journey
-
-              </h1>
-              <h3 className='subtitle'>
-                <b>FRED</b> - Face Recognition Emotion Detection
-              </h3>
-
-            </Col>
-
-          </Row>
-        </Container>
-
-        <div className='header-bar' />
+        </div>
 
         <Container
           className='main-container'
@@ -311,15 +282,15 @@ class Face extends Component {
           style={{ lineHeight: '32px' }}
         >
           <Row>
-
             <Col md={5} xs={12} className='container'>
+           
               <div className='dropzone'>
 
                 {showCamera
-                  ? <FaBeer style={reactIconOn} onClick={this.capture} />
+                  ? <FaBeer style={reactIconOn} onClick={this.cameraCapture} />
                   : <FaBeer style={reactIconOff} onClick={this.resetWebcam} />}
-
-                <Dropzone
+               
+               <Dropzone
                   className='photo'
                   accept={accept}
                   onDrop={this.onDrop.bind(this)}
@@ -371,17 +342,23 @@ class Face extends Component {
                   </div>
 
                 </Dropzone>
-
-              </div>
+                {caption ?
+                <p className="caption" >Caption: {caption}</p>
+                :null}
+                {landmarks ?
+                  <p className="caption" >Landmarks: {landmarks}</p> 
+                :null}
+                {ocr ?
+                    <p className="caption" >OCR: {ocr}</p> 
+                  :null}
+                </div>
 
               {showintro
-                ? <span>
-
-                  <h3 className='blurb'>
-                      Drag and drop or click to analyze faces.
-                  </h3>
-                  
-                </span>
+                ? <div>                
+                  <div className='subtitle sectitle upper'>
+                      Drag & drop or click to analyze faces
+                    </div>
+                </div>
                 : null}
 
             </Col>
@@ -389,47 +366,31 @@ class Face extends Component {
 
               {reject
                 ? <div className='error'>
-                    Unable to analyze: low image resolution quality.
+                    No faces found.
                   </div>
                 : null}
 
               {showintro
                 ? <span>
 
-                  <div className="intro">
-                      The Microsoft Cognitive Services APIs allow developers to embed AI
-                      in their applications to enable those apps to see, speak, understand,
-                      and interpret the needs of users.
-                    </div>
-
-                  <div className='blurb'>
-
-                    <span onClick={this.toggleHidden.bind(this)}>
-                        {this.state.isHidden ? (
-                          <img
-                            alt='Vision'
+                  <Content name='intro' />
+       
+                  <div>
+                    <span onClick={this.toggleImage.bind(this)}>
+                      {this.state.isHidden
+                          ? <img
+                            alt='Vision API'
                             className='apimap'
                             src={require('../images/vision.png')}
                             />
-                        ):null}
+                          : null}
 
-                        {!this.state.isHidden && <Child />}
-                   </span>
+                      {!this.state.isHidden && <SwapIamge />}
+                    </span>
+                  </div>
+
+                   <Content name="section02"  />
   
-                 </div>
-
-                  <p>
-                      <b>The Face API</b> takes an image as an input,
-                      and <b>returns JSON data</b> with confidence scores across a set of facial
-
-                      attributes for each face in the image.
-                    </p>
-
-                  <p>
-                      These attributes and emotions are cross-culturally
-                      and universally communicated with particular facial expressions as well as gender and approximate age.
-                    </p>
-
                 </span>
                 : null}
 
@@ -443,52 +404,44 @@ class Face extends Component {
 
                 {!loading && !showintro && !reject
                   ? <div>
-
                     <span className='meta right'>
                         Summary: total {metadata.length}
                     </span>
                     <div>
                       <Chart
                         size={500}
-                        data={getEmotionChartSummary(metadata)}
+                        data={utils.getEmotionChartSummary(metadata)}
                         />
                     </div>
-
                   </div>
                   : null}
-
                 <div />
               </div>
-
             </Col>
           </Row>
-
           <Row>
             <Col>
-
               <div>
-
                 {metadata.length > 1
                   ? <span>
                     <Row>
-
-                      <div className='label meta'>Profile Analysys</div>
+                      <div className='label meta'>Facial Analysys</div>
                     </Row>
                     <SBScatterplotChart
                       width={150}
                       height={200}
-                      data={getScatterPlotData(metadata)}
+                      data={utils.getScatterPlotData(metadata)}
                       />
                   </span>
                   : null}
-                  
+
                 <span className='gender'>
                   {males
                     ? <span className='piechart male meta'>
                         Male {males}
                       <SBPieChart
                         size={150}
-                        data={getEmotionChartSummary(metadata, 'male')}
+                        data={utils.getEmotionChartSummary(metadata, 'male')}
                         />
                     </span>
                     : null}
@@ -497,18 +450,16 @@ class Face extends Component {
                         Female {females}
                       <SBPieChart
                         size={150}
-                        data={getEmotionChartSummary(metadata, 'female')}
+                        data={utils.getEmotionChartSummary(metadata, 'female')}
                         />
                     </span>
                     : null}
 
                 </span>
-
               </div>
-
             </Col>
-
           </Row>
+
           {metadata.length
             ? <Row>
               <Col>
@@ -516,16 +467,13 @@ class Face extends Component {
                   <Legend
                     styles={scatterStyle}
                     horizontal
-                    data={getPieData(getEmotionChartSummary(metadata))}
+                    data={utils.getPieData(utils.getEmotionChartSummary(metadata))}
                     dataId={'key'}
                     />
 
                 </Row>
+                
                 <Row>
-                  <div className='label meta'>Facial Profile(s)</div>
-                </Row>
-                <Row>
-
                   {metadata.map((f, i) => (
                     <FaceMetaData
                       imageSrc={imageSrc}
@@ -539,17 +487,29 @@ class Face extends Component {
                       files={files || imageSrc}
                       />
                     ))}
-
                 </Row>
-
               </Col>
             </Row>
             : null}
 
         </Container>
 
-       <Footer />
+        {showintro
+          ? <div className='blurb'>
+            <Content name="footer-hdr" />
+          </div>
+          : null}
 
+        <Footer />
+
+        {this.state.metadata.length > 0 ||
+        this.state.landmarks.length > 0 ||
+        this.state.caption.length > 0  ? 
+          
+            <ShowConsoleLog />
+          
+          :null}
+          
       </div>
     )
   }

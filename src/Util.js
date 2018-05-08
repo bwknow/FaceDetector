@@ -118,3 +118,47 @@ export const makeblob = function (dataURL) {
   }
   return new Blob([uInt8Array], { type: contentType })
 }
+
+
+export const onDropRead=(files)=>{
+
+  const promise = new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.readAsDataURL(files[0])
+    reader.onload = () => {
+      if (reader.result) {
+        resolve(reader.result)
+      } else {
+        reject(Error('Failed converting to base64'))
+      }
+    }
+  })
+  return promise;
+
+}
+
+export const getMales = (metadata) => {
+  let males = []
+
+  for (let i = 0; i < metadata.length; i++) {
+    if (metadata[i].faceAttributes.gender === 'male') {
+      males.push({ val: metadata[i].faceAttributes.gender })
+    }
+  }
+  return males
+}
+
+export const  getOcrText=(obj)=>{
+  let arr=[];
+
+  for(let i = 0; i < obj.regions.length; i++){
+    for(let j = 0; j < obj.regions[i].lines.length; j++){
+      for(let k = 0;k < obj.regions[i].lines[j].words.length;k++){
+          arr.push(obj.regions[i].lines[j].words[k].text)
+      }
+    }
+  }
+
+  return arr.join(' ');
+}

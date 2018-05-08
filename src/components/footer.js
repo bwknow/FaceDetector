@@ -1,29 +1,23 @@
-import React from "react";
-import {resource} from "./resource";
+import React from 'react'
+import { resource } from './Resource'
 
 const footer = () => (
-  <div className="footer">
+  <div className='footer'>
     <p>
-      <a
-        href="https://www.starbucks.com/about-us/company-information/online-policies/privacy-policy"
-        target="_new"
-      >
-      {resource.PB_FORM_PRIVACY_POLICY}
-       
+      <a href={resource.PRIVACY_POLICY_URL} target='_new'>
+        {resource.PB_FORM_PRIVACY_POLICY}
+
       </a>
       |
-      <a
-        href="https://www.starbucks.com/about-us/company-information/online-policies/terms-of-use"
-        target="_new"
-      >
+      <a href={resource.TERMS_OF_USE} target='_new'>
         {resource.PB_FORM_TERMS}
       </a>
     </p>
 
     <div> {resource.PB_FORM_COPYRIGHT}</div>
     <div> {resource.PB_TAGLINE}</div>
-   
-  </div>
-);
 
-export default footer;
+  </div>
+)
+
+export default footer
