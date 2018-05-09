@@ -48,10 +48,13 @@ class Face extends Component {
       reject: false,
       showCamera: false,
       imageSrc: '',
-      landmarks:'',
-      landmarksJson:'',
       caption:'',
       captionJson:'',
+      recognizeText:'',
+      landmarks:'',
+      landmarksJson:'',
+      ocr:'',
+      ocrJson:'',
     })
   }
 
@@ -92,7 +95,10 @@ class Face extends Component {
       imageSrc: '',
       files: [],
       caption:'',
-      captionJson:''
+      captionJson:'',
+      ocr:'',
+      ocrJon:'',
+      loading:false,
     })
   }
 
@@ -160,14 +166,14 @@ class Face extends Component {
 
   cameraCapture = () => {
     const imageSrc = this.webcam.getScreenshot()
-
+   
     if(!imageSrc){
       this.setState({reject:true})
       return;
     }
-
+   
     AIService.getFace(imageSrc).then(this.successFaceCallback, this.failureCallback);
- 
+
     this.setState({
       metadata: [],
       files: [],
