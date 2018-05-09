@@ -70,7 +70,7 @@ const AIService = {
   getLandmark(preview) {
     var params = {
       "model": "landmarks", // Use "model": "celebrities" to use the Celebrities model.
-  };
+    };
     let subscriptionKey = resource.VISION_KEY;
     let contentType = 'application/octet-stream'
     let api = 'vision/v1.0/models/landmarks/analyze'
@@ -95,12 +95,12 @@ const AIService = {
     })
   },
 
-  
+
   getOCR(preview) {
     var params = {
       "language": "unk",
       "detectOrientation ": "true",
-  };
+    };
     let subscriptionKey = resource.VISION_KEY;
     let contentType = 'application/octet-stream'
     let api = 'vision/v1.0/ocr'
@@ -124,8 +124,6 @@ const AIService = {
         })
     })
   }
-  
-  
 };
 
 export default AIService;

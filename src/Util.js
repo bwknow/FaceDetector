@@ -32,7 +32,6 @@ export const getEmotionChart = emotion => {
   for (let i = 0; i < emotions.length; i++) {
     chart.push({ x: emotions[i], y: parseInt(emotion[emotions[i]] * 100, 0) })
   }
-
   return chart
 }
 
@@ -41,7 +40,6 @@ export const getPieData = data => {
   for (let i = 0; i < data.length; i++) {
     pieData.push({ key: data[i].x, value: parseInt(data[i].y * 100, 10) })
   }
-
   return pieData
 }
 
@@ -54,7 +52,6 @@ export const getScatterPlotData = data => {
       x: parseInt(i, 0)
     })
   }
-  
   return pieData
 }
 
@@ -135,7 +132,6 @@ export const onDropRead=(files)=>{
     }
   })
   return promise;
-
 }
 
 export const getMales = (metadata) => {
@@ -159,6 +155,5 @@ export const  getOcrText=(obj)=>{
       }
     }
   }
-
   return arr.join(' ');
 }

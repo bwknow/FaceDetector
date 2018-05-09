@@ -39,17 +39,40 @@ class Face extends Component {
     }
   }
 
+  reset () { 
+    this.setState({
+      dropzoneActive: false,
+      loading: true,
+      metadata: [],
+      showintro: false,
+      reject: false,
+      showCamera: false,
+      imageSrc: '',
+      landmarks:'',
+      landmarksJson:'',
+      caption:'',
+      captionJson:'',
+    })
+  }
+
   goHome = () => {
     this.setState({
-      showintro: true,
       files: [],
       metadata: [],
+      preview: '',
       loading: false,
-      imageSrc: '',
-      showCamera: false,
+      showintro: true,
       reject: false,
+      showCamera: false,
+      imageSrc: '',
       isHidden: true,
-      caption:''
+      caption:'',
+      captionJson:'',
+      recognizeText:'',
+      landmarks:'',
+      landmarksJson:'',
+      ocr:'',
+      ocrJson:'',
     })
   }
 
@@ -116,22 +139,6 @@ class Face extends Component {
     console.log("failed: " + error);
   }
 
-  reset () { 
-    this.setState({
-      dropzoneActive: false,
-      loading: true,
-      metadata: [],
-      showintro: false,
-      reject: false,
-      showCamera: false,
-      imageSrc: '',
-      landmarks:'',
-      landmarksJson:'',
-      caption:'',
-      captionJson:'',
-    })
-  }
-
   onDrop (files) {
     this.setState({
       files,
@@ -141,9 +148,9 @@ class Face extends Component {
     utils.onDropRead(files).then(
       result => {
           AIService.getCaption(result).then(this.successCaptionCallback, this.failureCallback);
-          AIService.getFace(result).then(this.successFaceCallback, this.failureCallback);
           AIService.getLandmark(result).then(this.successLandmarkCallback, this.failureCallback);
           AIService.getOCR(result).then(this.successOCRCallback, this.failureCallback);
+          AIService.getFace(result).then(this.successFaceCallback, this.failureCallback);
       },
       err => {
         console.log(err)
@@ -153,6 +160,12 @@ class Face extends Component {
 
   cameraCapture = () => {
     const imageSrc = this.webcam.getScreenshot()
+
+    if(!imageSrc){
+      this.setState({reject:true})
+      return;
+    }
+
     AIService.getFace(imageSrc).then(this.successFaceCallback, this.failureCallback);
  
     this.setState({
@@ -229,16 +242,16 @@ class Face extends Component {
 
     const ShowConsoleLog = () => (
       <div>
+        <pre className="captions">
+              {JSON.stringify(this.state.captionJson, null, 3)}
+        </pre>           
+        <pre className="faces">
+              {JSON.stringify(this.state.metadata, null, 3)}
+        </pre>
         <pre className="landmarks">
-            {JSON.stringify(this.state.landmarksJson, null, 3)}
-      </pre>
-      <pre className="captions">
-            {JSON.stringify(this.state.captionJson, null, 3)}
-      </pre>
-      <pre className="faces">
-            {JSON.stringify(this.state.metadata, null, 3)}
-      </pre>
-  </div>
+              {JSON.stringify(this.state.landmarksJson, null, 3)}
+        </pre>
+    </div>
     )
 
     return (

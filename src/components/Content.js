@@ -34,7 +34,7 @@ render() {
           <div >
           
           Our vision is for more personal computing experiences and
-          enhanced productivity aided by systems that increasingly can see, hear, speak,
+          enhanced productivity aided by systems that can see, hear, speak,
           understand and even begin to reason.
           
             
