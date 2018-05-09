@@ -1,5 +1,5 @@
 export const resource = {
- SITE_NAME: 'Azure Cognitive Services AI',
+ SITE_NAME: 'Azure Cognitive Services A.I.',
   PB_FORM_PRIVACY_POLICY: 'Privacy Policy',
   PB_FORM_TERMS: 'Terms & Conditions',
   PB_FORM_COPYRIGHT: '© 2018 Starbucks Corporation. All rights reserved.',
