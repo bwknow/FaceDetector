@@ -8,7 +8,7 @@ export const resource = {
   PRIVACY_POLICY_URL: "https://www.starbucks.com/about-us/company-information/online-policies/privacy-policy",
   TERMS_OF_USE: "https://www.starbucks.com/about-us/company-information/online-policies/terms-of-use",
   FACE_ATTRIBUTES: 'age,gender,headPose,smile,facialHair,glasses,emotion,hair,makeup,occlusion,accessories,blur,exposure,noise',
-  VISION_KEY: 'a33f9cca20924759b83b47215bc694b2',
-  FACE_KEY: 'd56a9317ba8a48d2964dbe40d9b65e2e',
+  VISION_KEY: '',
+  FACE_KEY: '',
   URI_BASE: 'https://westcentralus.api.cognitive.microsoft.com/'
 }
